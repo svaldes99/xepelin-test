@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const Register = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      await axios.post('http://localhost:5002/register', { username, password });
-      alert('User registered');
-    } catch (error) {
-      console.error('Registration error', error);
-    }
+    // Simulate a registration API call
+    alert('Registration successful');
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" required />
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required />
+      <h2>Register</h2>
+      <label>
+        Email:
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </label>
+      <br />
+      <label>
+        Password:
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      </label>
+      <br />
       <button type="submit">Register</button>
     </form>
   );

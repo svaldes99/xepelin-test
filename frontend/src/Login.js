@@ -1,28 +1,36 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const Login = ({ setToken }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:5002/login', { username, password });
-      setToken(response.data.token);
-    } catch (error) {
-      console.error('Invalid credentials', error);
+
+    // Simulate a login API call
+    if (email === 'user@example.com' && password === 'password') {
+      setToken('fake-token');
+    } else {
+      alert('Invalid credentials');
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" required />
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required />
+      <h2>Login</h2>
+      <label>
+        Email:
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </label>
+      <br />
+      <label>
+        Password:
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      </label>
+      <br />
       <button type="submit">Login</button>
     </form>
   );
 };
 
 export default Login;
-
