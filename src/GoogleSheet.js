@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import Papa from 'papaparse';
+import axios from 'axios';
 
 const GoogleSheet = () => {
   const [data, setData] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [newRate, setNewRate] = useState('');
-  const [email] = useState('s.valdes1@uc.cl');
 
   const SPREADSHEET_ID = '2PACX-1vSemz3pLNNHX48BFdqar2K1X-6bhC5T4H8zl1PkzMi5luHafj3Sv-2wqSdkKTr7O_NjWPCP5S1owVpB';
-  // const SHEET_NAME = 'Sheet1'; // Adjust the sheet name if necessary
   const CSV_URL = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?output=csv`;
+  const GOOGLE_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbwmqFHX_cHPkWO8xqMh-FRRMSBxeJNL6Lm21bssJCSG-ifcG6WFcmcsGj8-2RQ6q131/exec';
+  const ZAPIER_HOOK_URL = 'https://hooks.zapier.com/hooks/catch/6872019/oahrt5g/';
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(CSV_URL);
-        const csv = response.data;
+        const response = await fetch(CSV_URL);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const csv = await response.text();
         Papa.parse(csv, {
           header: true,
           complete: (results) => {
@@ -38,23 +41,50 @@ const GoogleSheet = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const selectedRow = data.find(row => row.idOp === selectedId);
+    if (!selectedRow) {
+      alert('Selected ID not found.');
+      return;
+    }
+    const userEmail = selectedRow.email;
+
+    const updatedData = [...data];
+    const indexToUpdate = updatedData.findIndex(row => row.idOp === selectedId);
+    if (indexToUpdate !== -1) {
+      updatedData[indexToUpdate].tasa = newRate.toString();
+      setData(updatedData);
+    } else {
+      alert('Error updating data.');
+      return;
+    }
+
     const postData = {
       idOp: selectedId,
       tasa: newRate,
-      email: email
+      email: userEmail
     };
-    try {
-      await fetch('https://hooks.zapier.com/hooks/catch/6872019/oahrt5g/', {
-        method: 'POST',
-        body: JSON.stringify(postData),
-      });
-      alert('Request sent successfully!');
-    } catch (error) {
-      // Alerta con la descripción del error
-      console.error('Error sending request:', error);
-      // Descartar el error y mostrar un mensaje genérico
 
-      alert('Failed to send request, please try again.');
+    try {
+      console.log('Sending request to Zapier...');
+      console.log('Data to send:', postData);
+      await fetch(ZAPIER_HOOK_URL, {
+        method: 'POST',
+        body: JSON.stringify(postData)
+      });
+
+      /* console.log('Sending request to Google Sheets...');
+      console.log('Data to send:', postData);
+      const googleResponse = await fetch(GOOGLE_SCRIPT_API_URL, {
+        method: 'POST',
+        body: JSON.stringify(postData)
+      });
+      console.log('Google Sheets Response:', googleResponse.data); // Mostrar respuesta de Google Sheets en consola */
+
+      alert('Requests sent successfully!');
+    } catch (error) {
+      console.error('Error sending requests', error);
+      alert('Failed to send requests, please try again.');
     }
   };
 
